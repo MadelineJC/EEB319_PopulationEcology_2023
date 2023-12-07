@@ -1,0 +1,156 @@
+# EEB319 Lab 2: Grizzly Bear Population Dynamics
+
+## Exercise 1
+
+```{r}
+BearsData <- read.csv("Bears.csv")
+```
+
+```{r}
+plot(BearsData$year, BearsData$N, type = "b", xlab = "Year", ylab = "Female Grizzly Bear Abundance")
+```
+
+## Exercise 2
+
+```{r}
+## Annual geometric population growth rates
+N <- BearsData$N # Vector of population abundances
+lambda <- c() # Empty vector to store lambda values
+
+for (i in 1:length(N)-1) {
+  lambda[i] <- ((N[i + 1])/N[i])
+}
+lambda
+
+## Annual exponential population growth rates
+r <- log(lambda)
+r
+
+## Mean and standard deviation
+r_mean <- mean(r)
+r_sd <- sd(r)
+```
+
+## Exercise 3
+
+```{r}
+## Model simulation
+N0 <- 44 # Initial population size
+first_year <- BearsData$year[nrow(BearsData)] + 1
+years <- seq(first_year, first_year + 59, 1) # Future years as a sequence
+N <- c() 
+N[1] <- N0 # Assigning the initial population size to the first position in the empty vector
+
+for (i in 2:length(years)) {
+  N[i] = N[i - 1]*exp(r_mean)
+}
+N
+
+## Plot
+plot(years, N, type = "b", xlab = "Year", ylab = "Female Grizzly Bear Abundance")
+abline(h = 20, col = "red")
+```
+
+## Exercise 4
+
+```{r}
+N0 <- 44
+first_year <- BearsData$year[nrow(BearsData)] + 1
+years <- seq(first_year, first_year + 59, 1)
+N_1 <- c()
+N_1[1] <- N0
+
+for (i in 2:length(years)) {
+  N_1[i] = N_1[i - 1]*exp(r_mean + r_sd)
+}
+N_1 
+
+N_2 <- c()
+N_2[1] <- N0
+
+for (i in 2:length(years)) {
+  N_2[i] = N_2[i - 1]*exp(r_mean - r_sd)
+}
+N_2 
+
+## Plot your results here
+plot(years, N_1, type = "b", las = 1, xlab = "Years", ylab = "Female Grizzly Bear Abundance")
+lines(years, N_2, type = "b", col = "red")
+```
+
+## Exercise 5
+
+```{r}
+set.seed(2) # Comment this out to see how model results change because of stochasticity
+
+N0 <- 44
+first_year <- BearsData$year[nrow(BearsData)] + 1
+years <- seq(first_year, first_year + 59, 1)
+N <- c()
+N[1] <- N0
+
+# Error is normally distributed with mean = 0 and standard deviation = sd
+epsilon <- rnorm(length(years), mean = 0, sd = r_sd)
+
+for (i in 2:length(years)) {
+  N[i] = N[i - 1]*exp(r_mean + epsilon[i - 1])
+}
+N
+
+## Plot your results here
+plot(years, N, type = "b", xlab = "Year", ylab = "Female Grizzly Bear Abundance")
+```
+
+## Exercise 6
+
+```{r}
+epsilon_list <- list() # Empty list
+for (i in 1:100) {
+  # Select error terms for each year, in each of 100 simulations
+  epsilon_list[[i]] <- rnorm(length(years), 0, r_sd)
+}
+
+N_list <- list() # Empty list
+Below20 <- c()
+
+## Simulation
+for (i in 1:100){
+  # Picking epsilon and setting up abundance vector
+  N <- c(44)
+  epsilon <- epsilon_list[[i]]
+  # Simulation of population growth model
+  for (j in 2:length(years)){
+    N[j] <- N[j - 1] * exp(r_mean + epsilon[j - 1])
+    N_list[[i]] <- N
+  }
+  # If... else statement to test if population falls below 20 individuals
+  if (TRUE %in% (N_list[[i]] < 20)) {
+    Below20[i] <- "Y"
+  }
+  else {
+    Below20[i] <- "N"
+  }
+}
+
+# Count the number of simulations in which population dips below 20
+length(Below20[Below20 == "Y"])
+
+## Plotting
+plot(BearsData$year, BearsData$N, type = "l", xlab = "Year", ylab = "Female Grizzly Bear Population Abundance", xlim = c(1959, 2038), ylim = c(0, 200), lwd = 2, col = "red3")
+for (i in 1:length(N_list)){
+  lines(years, N_list[[i]])
+}
+legend("topleft", legend = c("Empirical: 1959 to 1978", "Simulated: 1979 to 2038"), lty = 1, lwd = 2, col = c("red3", "black"))
+```
+
+## Exercise 7
+
+```{r}
+t60s <- c()
+for (i in 1:length(N_list)){
+  t60s[i] <- N_list[[i]][length(N_list[[i]])]
+}
+
+t60s_mean <- mean(t60s); t60s_sd <- sd(t60s)
+quantile(t60s, c(0.025, 0.975))
+```

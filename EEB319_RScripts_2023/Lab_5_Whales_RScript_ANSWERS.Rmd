@@ -1,0 +1,264 @@
+# EEB319 Lab 5: Stage-Structured Population Dynamics
+
+## Part 1
+
+### Exercise 1.1
+
+Using the life history graph, write down two equations for $J_{t+1}$ and $A_{t+1}$.
+
+$$
+\begin{align}
+J_{t+1}&=A_tS_Af \\
+A_{t+1}&=A_tS_A+J_tS_J
+\end{align}
+$$
+
+### Exercise 1.2
+
+Write down the corresponding population projection matrix (PPM).
+
+|                        | $J_{t+1}$ or $J_t$ | $A_{t+1}$ or $A_t$ |
+|------------------------|--------------------|--------------------|
+| $J_t$ **or** $J_{t+1}$ | $0$                | $S_Af$             |
+| $A_t$ **or** $A_{t+1}$ | $S_J$              | $S_A$              |
+
+### Exercise 1.3
+
+List three assumptions of the stage-structured model.
+
+*Blah, blah, blah.*
+
+### Exercise 1.4
+
+```{r}
+## Parameters
+S_J <- 0.1
+S_A <- 0.8
+f <- 3.5
+
+## Time
+t <- seq(0, 40, 1)
+
+## Empty vectors and initial conditions
+J <- c(); J[1] <- 10
+A <- c(); A[1] <- 0
+
+## For loop
+for (i in 2:length(t)){
+  J[i] <- A[i-1]*S_A*f
+  A[i] <- A[i-1]*S_A + J[i-1]*S_J
+}
+
+## Plotting
+plot(J, type = "l", col = "orchid1", lwd = 2, xlab = "Time", ylab = "Population Abundance")
+lines(A, col = "red3", lwd = 2)
+legend("topleft", legend = c("Juveniles", "Adults"), col = c("orchid1", "red3"), lwd = 2)
+```
+
+### Exercise 1.5
+
+```{r}
+## Matrix to make this easier to conceptualise
+popn_matrix <- cbind(t, J, A)
+head(popn_matrix)
+
+## Empty vectors
+J_lambdas <- c(); A_lambdas <- c()
+
+## For loop
+for (i in 2:nrow(popn_matrix)){
+  J_lambdas[i-1] <- popn_matrix[i, 2]/popn_matrix[i-1, 2]
+  A_lambdas[i-1] <- popn_matrix[i, 3]/popn_matrix[i-1, 3]
+}
+
+## Growth rate at requested time points
+J_lambdas[20]; J_lambdas[30]; J_lambdas[40]
+A_lambdas[20]; A_lambdas[30]; A_lambdas[40]
+```
+
+What is the value of $\lambda$ for adults and juveniles at these time points? Do they differ?
+
+*Nope.*
+
+### Exercise 1.6
+
+```{r}
+total_popn <- rowSums(popn_matrix[ ,2:3])
+head(total_popn)
+
+J_prop <- popn_matrix[ ,2]/total_popn
+head(J_prop)
+
+J_prop[20]; J_prop[30]; J_prop[40]
+```
+
+Do they differ through time?
+
+*Nope.*
+
+### Exercise 1.7
+
+```{r}
+plot(J, A, type = "b", xlab = "Juvenile Abundance", ylab = "Adult Abundance", main = "Phase Plane")
+```
+
+What pattern do you see and how does it relate to the eigenvalue and eigenvector?
+
+*Blah, blah, blah.*
+
+## Part 2
+
+### Exercise 2.1
+
+$$
+\begin{align}
+n_{1, t+1} &= F_2n_{2,t} + F_3n_{3,t} \\
+n_{2, t+1} &= p_{22}n_{2,t} + p_{21}n_{1,t} \\
+n_{3, t+1} &= p_{33}n_{3,t} + p_{32}n_{2,t} + p34n_{4,t} \\
+n_{4, t+1} &= p_{42}n_{2,t} + p_{43}n_{3,t} 
+\end{align}
+$$
+
+### Exercise 2.2
+
+```{r}
+## Parameters
+p21 <- 0.92; p22 <- 0.86
+p32 <- 0.08; p33 <- 0.80; p34 <- 0.75
+p42 <- 0.02; p43 <- 0.19
+
+## Fecundity equations
+F2 <- 0.5*p42*sqrt(p34); F3 <- 0.5*p43*sqrt(p34)
+
+## Time
+t <- seq(0, 100, 1)
+
+## Empty vectors and initial conditions
+n1 <- c(); n1[1] <- 200
+n2 <- c(); n2[1] <- 200
+n3 <- c(); n3[1] <- 200
+n4 <- c(); n4[1] <- 200
+
+## Model simulation via for loop
+for (i in 2:length(t)){
+  n1[i] <- F2*n2[i-1] + F3*n3[i-1]
+  n2[i] <- p22*n2[i-1] + p21*n1[i-1]
+  n3[i] <- p33*n3[i-1] + p32*n2[i-1] + p34*n4[i-1]
+  n4[i] <- p42*n2[i-1] + p43*n3[i-1]
+}
+
+popn_matrix <- cbind(t, n1, n2, n3, n4)
+head(popn_matrix)
+
+## Plotting
+plot(n1, type = "l", col = "lightpink", lwd = 2, xlab = "Time", ylab = "Population Abundance", ylim = c(0, max(popn_matrix)))
+lines(n2, col = "#00CC99", lwd = 2)
+lines(n3, col = "lightblue", lwd = 2)
+lines(n4, col = "#CC99FF", lwd = 2)
+legend("topright", legend = c("Calves", "Immature females", "Mature females", "Mature females w/ calves"), col = c("lightpink", "#00CC99", "lightblue", "#CC99FF"), lwd = 2)
+```
+
+```{r}
+## Empty vectors
+n1_lambdas <- c(); n2_lambdas <- c(); n3_lambdas <- c(); n4_lambdas <- c()
+
+## For loop
+for (i in 2:nrow(popn_matrix)){
+  n1_lambdas[i-1] <- popn_matrix[i, 2]/popn_matrix[i-1, 2]
+  n2_lambdas[i-1] <- popn_matrix[i, 3]/popn_matrix[i-1, 3]
+  n3_lambdas[i-1] <- popn_matrix[i, 4]/popn_matrix[i-1, 4]
+  n4_lambdas[i-1] <- popn_matrix[i, 5]/popn_matrix[i-1, 5]
+}
+
+plot(n1_lambdas, type = "l", col = "lightpink", lwd = 2, lty = 1, xlab = "Time", ylab = "Lambda")
+lines(n2_lambdas, col = "#00CC99", lwd = 2, lty = 2)
+lines(n3_lambdas, col = "lightblue", lwd = 2, lty = 3)
+lines(n4_lambdas, col = "#CC99FF", lwd = 2, lty = 4)
+legend("topright", legend = c("Calves", "Immature females", "Mature females", "Mature females w/ calves"), col = c("lightpink", "#00CC99", "lightblue", "#CC99FF"), lwd = 2)
+
+n1_lambdas[length(n1_lambdas)]
+n2_lambdas[length(n2_lambdas)]
+n3_lambdas[length(n3_lambdas)]
+n4_lambdas[length(n4_lambdas)]
+```
+
+*Geometric population growth rate = 0.998134*
+
+```{r}
+total_popn <- rowSums(popn_matrix[ ,2:5])
+head(total_popn)
+
+n1_prop <- popn_matrix[ ,2]/total_popn
+n2_prop <- popn_matrix[ ,3]/total_popn
+n3_prop <- popn_matrix[ ,4]/total_popn
+n4_prop <- popn_matrix[ ,5]/total_popn
+
+plot(n1_prop, type = "l", col = "lightpink", lwd = 2, lty = 1, xlab = "Time", ylab = "Lambda", ylim = c(0, 1))
+lines(n2_prop, col = "#00CC99", lwd = 2, lty = 2)
+lines(n3_prop, col = "lightblue", lwd = 2, lty = 3)
+lines(n4_prop, col = "#CC99FF", lwd = 2, lty = 4)
+legend("topright", legend = c("Calves", "Immature females", "Mature females", "Mature females w/ calves"), col = c("lightpink", "#00CC99", "lightblue", "#CC99FF"), lwd = 2)
+
+n1_prop[length(n1_prop)]
+n2_prop[length(n2_prop)]
+n3_prop[length(n3_prop)]
+n4_prop[length(n4_prop)]
+```
+
+*Steady-stage distribution:*
+
+$n_1$ = 0.04672768
+
+$n_2$ = 0.3112158
+
+$n_3$ = 0.5341436
+
+$n_4$ = 0.107913
+
+### Exercise 2.3
+
+```{r}
+## Value of p34
+p34 <- 0.77
+
+## Fecundity equations
+F2 <- 0.5*p42*sqrt(p34); F3 <- 0.5*p43*sqrt(p34)
+
+## Empty vectors and initial conditions
+n1 <- c(); n1[1] <- 200
+n2 <- c(); n2[1] <- 200
+n3 <- c(); n3[1] <- 200
+n4 <- c(); n4[1] <- 200
+
+## Model simulation via for loop
+for (i in 2:length(t)){
+  n1[i] <- F2*n2[i-1] + F3*n3[i-1]
+  n2[i] <- p22*n2[i-1] + p21*n1[i-1]
+  n3[i] <- p33*n3[i-1] + p32*n2[i-1] + p34*n4[i-1]
+  n4[i] <- p42*n2[i-1] + p43*n3[i-1]
+}
+
+popn_matrix <- cbind(t, n1, n2, n3, n4)
+
+## Finding geometric population growth rate
+n1_lambdas <- c(); n2_lambdas <- c(); n3_lambdas <- c(); n4_lambdas <- c()
+
+for (i in 2:nrow(popn_matrix)){
+  n1_lambdas[i-1] <- popn_matrix[i, 2]/popn_matrix[i-1, 2]
+  n2_lambdas[i-1] <- popn_matrix[i, 3]/popn_matrix[i-1, 3]
+  n3_lambdas[i-1] <- popn_matrix[i, 4]/popn_matrix[i-1, 4]
+  n4_lambdas[i-1] <- popn_matrix[i, 5]/popn_matrix[i-1, 5]
+}
+
+n1_lambdas[length(n1_lambdas)]; n2_lambdas[length(n2_lambdas)]; n3_lambdas[length(n3_lambdas)]; n4_lambdas[length(n4_lambdas)]
+```
+
+$p_{34}$ *must be greater than or equal to 0.77 (using same degree of precision as given in question).*
+
+```{r}
+n4_SSD <- n4_prop[length(n4_prop)]; 77*n4_SSD
+```
+
+*There are currently 8 (8.309298) mothers with calves.*
+
+*Number of mothers that need to be saved to push population growth rate over 1: 1 (I don't have a great way to do this actually because I'm confused by the question, but I think this is the right answer).*

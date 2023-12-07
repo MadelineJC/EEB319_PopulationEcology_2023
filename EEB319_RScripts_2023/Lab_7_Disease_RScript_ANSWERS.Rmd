@@ -1,0 +1,226 @@
+# EEB319 Lab 7: Infectious Disease Modeling
+
+## Exercise 1
+
+```{r}
+## Parameters
+b <- 0.05
+k <- 50
+dt <- 0.001
+
+## Time
+t <- seq(0, 100, 1)
+
+## Empty vectors and initial conditions
+S <- c(); S[1] <- 10000
+I <- c(); I[1] <- 1
+R <- c(); R[1] <- 0
+
+## Model simulation via for loop
+for(i in 2:length(t)){
+  S[i] <- -b*S[i-1]*I[i-1]*dt + S[i-1]
+  I[i] <- (b*S[i-1]*I[i-1]-k*I[i-1])*dt + I[i-1]
+  R[i] <- k*I[i-1]*dt + R[i-1]
+}
+
+## Plotting
+plot(S, xlab = "Time", ylab = "Population Abundance", type = "l")
+lines(I, lty = 2) 
+lines(R, lty = 3)
+legend("topright", legend = c("Susceptible", "Infected", "Removed"), lty = c(1, 2, 3))
+```
+
+Describe the trends for each population category within the model. Are the trends as you expected? Why or why not? Does the number of infected individuals peak? If so, when?
+
+*Blah, blah, blah.*
+
+## Exercise 2
+
+```{r}
+## Calculating R0 for above simulation
+R0 <- b*S[1]/k; R0
+
+## Calculating Host Density Threshold (NC) for simulation above
+NC <- k/b; NC
+
+#### New simulations! ####
+## Parameters
+b <- 0.05
+k <- 50
+dt <- 0.001
+
+## Time
+t <- seq(0, 100, 1)
+
+## Model simulation via for loop
+S_concat <- c(); I_concat <- c(); R_concat <- c()
+S_inits <- c(5000, 4000, 2000, 1001, 1000, 500)
+for (i in 1:length(S_inits)){
+  S <- c(); S[1] <- S_inits[i]
+  I <- c(); I[1] <- 1
+  R <- c(); R[1] <- 0
+  for (j in 2:length(t)){
+  S[j] <- -b*S[j-1]*I[j-1]*dt + S[j-1]
+  I[j] <- (b*S[j-1]*I[j-1]-k*I[j-1])*dt + I[j-1]
+  R[j] <- k*I[j-1]*dt + R[j-1]
+  }
+  S_concat <- cbind(S_concat, S)
+  I_concat <- cbind(I_concat, I)
+  R_concat <- cbind(R_concat, R)
+}
+
+## Calculating R0
+R0s <- c()
+for (i in 1:ncol(S_concat)){
+  R0s[i] <- b*S_concat[1, i]/k
+}
+R0s
+
+## Plotting
+plot(S_concat[, 1], xlab = "Time", ylab = "Population Abundance", main = "Initial # of Susceptible Individuals = 5000", type = "l", ylim = c(0, 5000))
+lines(I_concat[, 1], lty = 2) 
+lines(R_concat[, 1], lty = 3)
+legend("topright", legend = c("Susceptible", "Infected", "Removed"), lty = c(1, 2, 3))
+
+plot(S_concat[, 2], xlab = "Time", ylab = "Population Abundance", main = "Initial # of Susceptible Individuals = 4000", type = "l", ylim = c(0, 5000))
+lines(I_concat[, 2], lty = 2) 
+lines(R_concat[, 2], lty = 3)
+legend("topright", legend = c("Susceptible", "Infected", "Removed"), lty = c(1, 2, 3))
+
+plot(S_concat[, 3], xlab = "Time", ylab = "Population Abundance", main = "Initial # of Susceptible Individuals = 2000", type = "l", ylim = c(0, 5000))
+lines(I_concat[, 3], lty = 2) 
+lines(R_concat[, 3], lty = 3)
+legend("topright", legend = c("Susceptible", "Infected", "Removed"), lty = c(1, 2, 3))
+
+plot(S_concat[, 4], xlab = "Time", ylab = "Population Abundance", main = "Initial # of Susceptible Individuals = 1001", type = "l", ylim = c(0, 5000))
+lines(I_concat[, 4], lty = 2) 
+lines(R_concat[, 4], lty = 3)
+legend("topright", legend = c("Susceptible", "Infected", "Removed"), lty = c(1, 2, 3))
+
+plot(S_concat[, 5], xlab = "Time", ylab = "Population Abundance", main = "Initial # of Susceptible Individuals = 1000", type = "l", ylim = c(0, 5000))
+lines(I_concat[, 5], lty = 2) 
+lines(R_concat[, 5], lty = 3)
+legend("topright", legend = c("", "Infected", "Removed"), lty = c(1, 2, 3))
+
+plot(S_concat[, 6], xlab = "Time", ylab = "Population ", main = "Initial # of Susceptible Individuals = 500", type = "l", ylim = c(0, 5000))
+lines(I_concat[, 6], lty = 2) 
+lines(R_concat[, 6], lty = 3)
+legend("topright", legend = c("Susceptible", "Infected", "Removed"), lty = c(1, 2, 3))
+```
+
+How do the patterns change as you alter $N$? Although probably not visually apparent, how do the plots that begin with 1001 and 1000 susceptible individuals differ?
+
+*Blah, blah, blah.*
+
+## Exercise 3
+
+For $\beta$:
+
+$$
+\begin{align}
+R_0&=\frac{\beta S_0}{k} \\
+1&=\frac{\beta 10,000}{50} \\
+50&=\beta 10,000 \\
+\beta&=0.005
+\end{align}
+$$
+
+For $k$:
+
+$$
+\begin{align}
+R_0&=\frac{\beta S_0}{k} \\
+1&=\frac{0.05*10,000}{k} \\
+k&=0.05*10,000 \\
+k&=500
+\end{align}
+$$
+
+```{r}
+#### Original simulation ####
+## Parameters
+b <- 0.05
+k <- 50
+dt <- 0.001
+
+## Time
+t <- seq(0, 100, 1)
+
+## Empty vectors and initial conditions
+S <- c(); S[1] <- 10000
+I <- c(); I[1] <- 1
+R <- c(); R[1] <- 0
+
+## Model simulation via for loop
+for(i in 2:length(t)){
+  S[i] <- -b*S[i-1]*I[i-1]*dt + S[i-1]
+  I[i] <- (b*S[i-1]*I[i-1]-k*I[i-1])*dt + I[i-1]
+  R[i] <- k*I[i-1]*dt + R[i-1]
+}
+
+## R0
+R0 <- b*S[1]/k; R0
+
+## NC
+NC <- k/b; NC
+
+## Plotting
+plot(S, xlab = "Time", ylab = "Population Abundance", main = expression(paste("β = 0.05; k = 50; ", R[0], " = 10")), type = "l")
+lines(I, lty = 2) 
+lines(R, lty = 3)
+legend("topright", legend = c("Susceptible", "Infected", "Removed"), lty = c(1, 2, 3))
+
+#### Decreased beta simulation ####
+b <- 0.005
+k <- 50
+dt <- 0.001
+
+t <- seq(0, 100, 1)
+
+S <- c(); S[1] <- 10000
+I <- c(); I[1] <- 1
+R <- c(); R[1] <- 0
+
+for(i in 2:length(t)){
+  S[i] <- -b*S[i-1]*I[i-1]*dt + S[i-1]
+  I[i] <- (b*S[i-1]*I[i-1]-k*I[i-1])*dt + I[i-1]
+  R[i] <- k*I[i-1]*dt + R[i-1]
+}
+
+R0 <- b*S[1]/k; R0
+NC <- k/b; NC
+
+plot(S, xlab = "Time", ylab = "Population Abundance", main = expression(paste("β = 0.005; k = 50; ", R[0], " = 1")), type = "l")
+lines(I, lty = 2) 
+lines(R, lty = 3)
+legend("topright", legend = c("Susceptible", "Infected", "Removed"), lty = c(1, 2, 3))
+
+#### Increased k simulation ####
+b <- 0.05
+k <- 500
+dt <- 0.001
+
+t <- seq(0, 100, 1)
+
+S <- c(); S[1] <- 10000
+I <- c(); I[1] <- 1
+R <- c(); R[1] <- 0
+
+for(i in 2:length(t)){
+  S[i] <- -b*S[i-1]*I[i-1]*dt + S[i-1]
+  I[i] <- (b*S[i-1]*I[i-1]-k*I[i-1])*dt + I[i-1]
+  R[i] <- k*I[i-1]*dt + R[i-1]
+}
+
+R0 <- b*S[1]/k; R0
+NC <- k/b; NC
+
+plot(S, xlab = "Time", ylab = "Population Abundance", main = expression(paste("β = 0.05; k = 500; ", R[0], " = 1")), type = "l")
+lines(I, lty = 2) 
+lines(R, lty = 3)
+legend("topright", legend = c("Susceptible", "Infected", "Removed"), lty = c(1, 2, 3))
+```
+
+Describe your own individual strategy where you alter all three parameters to eradicate the disease in the population. How could these parameters be met?
+
+*Blah, blah, blah.*

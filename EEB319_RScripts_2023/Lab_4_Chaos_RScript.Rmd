@@ -1,0 +1,354 @@
+# EEB319 Lab 4: Non-Linear Dynamics and Chaos
+
+Name:
+
+Lab Section:
+
+------------------------------------------------------------------------
+
+This week, we'll use simulations to investigate how simple population dynamics models can produce complex dynamics.
+
+**Marking:** Each question is worth 10 points, for a total of 100 points.
+
+------------------------------------------------------------------------
+
+## Introduction
+
+Discrete modeling of population abundances can take many forms. We have previously encountered the simple population model that, when the population growth rate (r) is positive, results in exponential growth (Figure 1):
+
+$$
+N_{t+1}=N_te^r
+$$
+
+Where $N$ is population abundance at time $t$ and $r$ is the population growth rate. However, uncontrolled growth is rare and populations are often limited in their growth by their environment.
+
+```{r}
+N <- c(); N[1] <- 1
+t <- seq(0, 50, 1)
+r <- 0.13
+
+for (i in 2:length(t)){
+  N[i] <- N[i - 1]*exp(r)
+}
+
+plot(N, xlim = c(0, 50), ylim = c(0, 1100), xlab = "Time", ylab = "Population Abundance", type = "l", lwd = 1, col = "red3")
+
+## When r varies
+t <- seq(0, 50, 1)
+r <- seq(0.13, 0.14, 0.001)
+
+df <- c()
+for (i in 1:length(r)){
+  N <- c(); N[1] <- 1
+  for (j in 2:length(t)){
+    N[j] <- N[j - 1]*exp(r[i])
+  }
+  df <- cbind(df, N)
+}
+
+cols <- c("red3", "orange1", "gold", "#00CC99", "#009966", "#66CCFF", "#003399", "#330066", "#CC99FF", "#FF99FF", "#CC0066")
+plot(1, 1, pch = "", xlim = c(0, 50), ylim = c(0, max(df)), xlab = "Time", ylab = "Population Abundance (N)")
+for (i in 1:ncol(df)){
+  points(df[ ,i], col = cols[i], type = "l", lwd = 1)
+}
+```
+
+A more realistic model to use is the Ricker Model (1954). Dr. Bill Ricker was a Canadian quantitative fisheries biologist who contributed to how we study fisheries populations today. This model continues to be used to analyze time-series data of density-dependent populations, (e.g. Myers et al. 1999). The Ricker Model is what we call a discrete time density-dependent model: $$N_{t+1}=N_te^{r(1-\frac{N_t}{K})}$$
+
+This equation models the population abundance ($N$) at time $t+1$ as a function of population abundance ($N$) at time $t$, the intrinsic growth rate ($r$), and the carrying capacity ($K$).
+
+------------------------------------------------------------------------
+
+## Exercise 1
+
+Similarly to the plot above, plot a simulation of the Ricker Model over 100 years using a line plot. Start with a population size ($N$) of 5 individuals, and parameters $r=0.1$ and $K=1000$. Make sure to connect the dots in your plot with lines.
+
+**Make sure to add plotting arguments (`xlab`, `ylab`, etc.), and change `eval = FALSE` to `eval = TRUE` before knitting to submit!**
+
+```{r, eval = FALSE}
+r <- ...
+K <- ...
+t <- seq(0, ..., ...)
+N <- c(); N[...] <- ...
+
+for (i in 2:length(t)){
+  N[i] <- N[i-1]*exp(...)
+}
+
+plot(N)
+```
+
+------------------------------------------------------------------------
+
+## Exercise 2
+
+Plot a simulation with $N_0=200$. Re-plot the simulation from Exercise 1, and overlay the plot from this exercise. Notice that both simulations plateau ($\frac{dN}{dt} = 0$) at the same value of $N$.
+
+**Make sure to include plotting arguments, differentiate your population abundances (using colours or line types), and include a legend.**
+
+```{r}
+
+```
+
+How should we refer to this value? What do you notice about this value?
+
+*Type answer here.*
+
+------------------------------------------------------------------------
+
+## Exercise 3
+
+Let's investigate the influence of environmental stochasticity. Suppose the population is exposed to a random environmental perturbation each year such that:
+
+$$N_{t+1}=N_te^{r(1-\frac{N_t}{K})+\epsilon^t}$$
+
+Where $\epsilon^t$ is a normal random variable with mean equal to zero and standard deviation equal to 0.4. For this model, in each year there is a random variable that is drawn which affects the survival of that cohort. Simulate the model for 100 years with an initial population abundance of 5. To simulate $\epsilon^r$ in R, use the function `rnorm()`.
+
+**Make sure to add plotting arguments (`xlab`, `ylab`, etc.), and change `eval = FALSE` to `eval = TRUE` before knitting to submit!**
+
+```{r, eval = FALSE}
+## Parameters
+r <- ...
+K <- ...
+sd <- ...
+
+## Time
+t <- seq(0, 100, 1)
+
+## Empty vector for population abundance (N), and initial condition
+N <- c(); N[...] <- ...
+
+## Draw from normal distribution for error terms
+set.seed(1) # So we all get the same answers!
+epsilon <- ...(n = t - 1, mean = ..., sd = ...)
+
+## Loop time!
+for(i in 2:length(t)){
+  N[...] <- N[...]*exp(0.1*(1 - (N[...]/K)) + epsilon[...])
+}
+
+## Plotting
+plot(N, type = "l", xlab = "...", ylab = "...")
+```
+
+------------------------------------------------------------------------
+
+## Exercise 4
+
+Simulate and plot the model in Exercise 3 several (5) times and observe how the dynamics change from simulation to simulation.
+
+**Make sure to add plotting arguments (`xlab`, `ylab`, etc.), and change `eval = FALSE` to `eval = TRUE` before knitting to submit!**
+
+***HINT: Refer to the first code chunk in this document to plot multiple population trajectories using a for loop!***
+
+```{r, eval = FALSE}
+## Parameters
+r <- ...
+K <- ...
+sd <- ...
+
+## Time
+t <- ...
+
+## Number of population simulations we want to do
+pop_sims <- ...
+
+## Draw from normal distribution for error terms
+epsilon_df <- c()
+for (i in 1:...){
+  set.seed(...)
+  epsilon <- ...(n = t - 1, mean = ..., sd = ...)
+  epsilon_df <- cbind(epsilon_df, epsilon)
+}
+
+## Loop time! And this time, it's nested!
+N_df <- c()
+for (i in 1:pop_sims){
+  N <- c(); N[1] <- 5
+  for (j in 2:length(t)){
+    N[j] <- N[j - 1]*exp(0.1*(1 - (N[j - 1]/K)) + epsilon_df[j - 1, i])
+  }
+  N_df <- cbind(N_df, N)
+}
+
+## Plotting
+...
+```
+
+How do these population trajectories compare to the deterministic (i.e. no randomness) model in Exercise 1? Does adding environmental stochasticity have a large effect on population abundance?
+
+*Type answer here.*
+
+------------------------------------------------------------------------
+
+## Exercise 5
+
+Let's re-examine the deterministic model in Exercise 1, but this time, plot the results of a simulation for each of the following values of $r$: 0.5, 1, 1.5, 1.9, 2, 2.2, 2.5, 2.6, 2.7, 2.8, 2.9.
+
+**Make sure to add plotting arguments (`xlab`, `ylab`, etc.), and change `eval = FALSE` to `eval = TRUE` before knitting to submit!**
+
+***HINT: Refer to the first code chunk in this document to plot multiple population trajectories using a for loop!***
+
+```{r, eval = FALSE}
+r <- c(...)
+K <- 1000
+t <- seq(0, 100, 1)
+
+N_df <- c()
+for (i in 1:length(r)){
+  N <- c(); N[1] <- 5
+  for (j in 2:length(t)){
+    N[j] <- N[j-1]*exp(r[i]*(1-(N[j-1]/K)))
+  }
+  N_df <- cbind(N_df, N)
+}
+
+## Plotting
+...
+
+## That's a lot! Let's plot sequentially:
+plot(N_df[ ,1], type = "l", col = cols[1], xlab = "Time", ylab = "Population Abundance (N)", main = "r = 0.5", ylim = c(0, 2500))
+
+plot(N_df[ ,2], type = "l", col = cols[2], xlab = "Time", ylab = "Population Abundance (N)", main = "r = 1.0", ylim = c(0, 2500))
+
+plot(N_df[ ,3], type = "l", col = cols[3], xlab = "Time", ylab = "Population Abundance (N)", main = "r = 1.5", ylim = c(0, 2500))
+
+plot(N_df[ ,4], type = "l", col = cols[4], xlab = "Time", ylab = "Population Abundance (N)", main = "r = 1.9", ylim = c(0, 2500))
+
+plot(N_df[ ,5], type = "l", col = cols[5], xlab = "Time", ylab = "Population Abundance (N)", main = "r = 2.0", ylim = c(0, 2500))
+
+plot(N_df[ ,6], type = "l", col = cols[6], xlab = "Time", ylab = "Population Abundance (N)", main = "r = 2.2", ylim = c(0, 2500))
+
+plot(N_df[ ,7], type = "l", col = cols[7], xlab = "Time", ylab = "Population Abundance (N)", main = "r = 2.5", ylim = c(0, 2500))
+
+plot(N_df[ ,8], type = "l", col = cols[8], xlab = "Time", ylab = "Population Abundance (N)", main = "r = 2.6", ylim = c(0, 2500))
+
+plot(N_df[ ,9], type = "l", col = cols[9], xlab = "Time", ylab = "Population Abundance (N)", main = "r = 2.7", ylim = c(0, 2500))
+
+plot(N_df[ ,10], type = "l", col = cols[10], xlab = "Time", ylab = "Population Abundance (N)", main = "r = 2.8", ylim = c(0, 2500))
+
+plot(N_df[ ,11], type = "l", col = cols[11], xlab = "Time", ylab = "Population Abundance (N)", main = "r = 2.9", ylim = c(0, 2500))
+```
+
+Describe how the dynamics change as you increase $r$.
+
+*Type your answer here.*
+
+------------------------------------------------------------------------
+
+## Exercise 6
+
+Redo the simulation in Exercise 5 where $r=2.9$ and compare the dynamics using a line plot between initial population sizes of 5 and 5.1. Do it again when $r=0.3$. Notice that a small change in initial conditions has on the subsequent dynamics. At high values of $r$ there is a high sensitivity to initial conditions.
+
+```{r}
+
+```
+
+At high values of $r$, in Exercises 5 and 6, you observed chaos. The chaotic fluctuations in abundance looked like random fluctuations similar to those in Exercise 3, but notice that the model in Exercises 5 and 6 doesn't include a stochastic term ($\epsilon$). Sensitivity to initial conditions in Exercise 6 is a hallmark characteristic of chaos.
+
+Being able to differentiate randomness and chaos has been a central question in ecology and other scientific fields. When presented with a plot: are the data random? Or are there simple rules that determine fluctuations? There are no easy answers. Furthermore, if chaotic dynamics are common, then sensitivity to initial conditions means our ability to predict is very poor (this is why long range weather forecasting is so bad)!
+
+------------------------------------------------------------------------
+
+## Exercise 7
+
+The previous exercises all assumed constant growth models across a population. However, in reality, population growth models may need to be stage-structured, such as between adults and juveniles, to account for differing growth dynamics. For example, in some cases, there may be increased numbers of immature or juvenile individuals relative to adults, causing an overall larger population size. This is called overcompensation and can occur in nature for many different reasons, for example, as a result of a pathogen outbreak in European Perch (Perca fluviatilis; Ohlberger et al. 2011) or as a result of harvest of Smallmouth Bass (Micropterus dolomieu; Zipkin et al. 2008).
+
+For this exercise, let's assume that juveniles ($J$) and adults ($A$) follow differing growth models with juveniles showing overcompensation:
+
+$$
+\begin{align}
+J_t &= A_{t-1}e^f \\
+A_t&=J_{t-1}e^{-aJ_{t-1}}+sA_{t-1}
+\end{align}
+$$
+
+Where $J$ is the juvenile population abundance, $A$ is the adult population abundance, $f=12$ is fecundity rate, $a=5$ is the density dependent survival rate, and $s=0.85$ is the annual adult survival rate. Simulate both models for 2000 years with initial population sizes of 100 for juveniles and 120 for adults. Plot the simulations for years 500 to 2000 on separate plots.
+
+**Make sure to add plotting arguments (`xlab`, `ylab`, etc.), and change `eval = FALSE` to `eval = TRUE` before knitting to submit!**
+
+```{r, eval = FALSE}
+## Parameters
+f <- ...
+a <- ...
+s <- ...
+
+## Time
+t <- seq(1, 2000, 1)
+
+## Empty vectors and initial conditions
+J <- c(); J[...] <- ...
+A <- c(); A[...] <- ...
+
+## Simulation
+for(i in 2:length(t)){
+  J[i] <- ...
+  A[i] <- ...
+}
+
+## Ploting
+plot(J[...], type = "l", xlab = "...", ylab = "...", main = "...")
+plot(A[...], type = "l", xlab = "...", ylab = "...", main = "...")
+```
+
+What do you conclude from the plots?
+
+*Type your answer here.*
+
+------------------------------------------------------------------------
+
+## Exercise 8
+
+Now, let's build the attractor in state-space and relate the dynamics in state space to those in the time series. To build a state space, put the juvenile abundance on the x-axis and the adult abundance on the y-axis. Plot the Juvenile-Adult data pairs for years 500 to 2000. Make sure to use a scatter plot (default plotting option).
+
+**Make sure to add plotting arguments (`xlab`, `ylab`, etc.), and change `eval = FALSE` to `eval = TRUE` before knitting to submit!**
+
+```{r, eval = FALSE}
+plot(..., ..., xlab = "...", ylab = "...", main = "...")
+```
+
+How do the individual time series look in comparison to the state space?
+
+*Type your answer here.*
+
+------------------------------------------------------------------------
+
+## Exercise 9
+
+To make a little bit more sense of the juvenile-adult state space, let's compare it with a null model created from random normal variables. This depicts the situation where juvenile and adult growth rates are random. Create two vectors in R, one consisting of 1500 random variables with a mean of 100 and a standard deviation of 10, and the other vector consisting of 1500 random variables with a mean of 120 and a standard deviation of 10.
+
+To do this, use the `rnorm()` function in R and specify the number of random variables you want to generate, the mean, and the standard deviation. Use the two resulting vectors to plot your null model state space.
+
+```{r}
+
+```
+
+What does the state space look like? How does this compare with the state space from Exercise 10?
+
+*Type your answer here.*
+
+------------------------------------------------------------------------
+
+## Exercise 10
+
+Based on your null model, what conclusions can you draw from your realized juvenile-adult state space? Explain. Also, how do your conclusions relate to your expectations when you first looked at the individual time series of juveniles and adults?
+
+*Type your answer here.*
+
+------------------------------------------------------------------------
+
+## Optional:
+
+At some point this semester, watch the movie "Run Lola Run", about chaos. Note how the story line changes dramatically based on small differences in her initial flight down the stairs (sensitivity to initial conditions).
+
+------------------------------------------------------------------------
+
+## References
+
+Myers, R.A., Bowen, K.G., and Barrowman, N.J. 1999. Maximum reproductive rate of fish at low population sizes. Canadian Journal of Fisheries and Aquatic Sciences 56:2404--2419.
+
+Ohlberger, J., Langangen, Ø., Edeline, E., Claessen, D., Winfield, I.J., Stenseth, N.C., and Vøllestad, L.A. 2011. Stage-specific biomass overcompensation by juveniles in response to increased adult mortality in a wild fish population. Ecology 92(12):2175--2182.
+
+Ricker, W.E. 1954. Stock and recruitment. Journal of the Fisheries Research Board of Canada 11:559--623.
+
+Zipkin, E.F., Sullivan, P.J., Cooch, E.G., Kraft, C.E., Shuter, B.J., and Weidel, B.C. 2008. Overcompensatory response of a smallmouth bass (Micropterus dolomieu) population to harvest: release from competition? Canadian Journal of Fisheries and Aquatic Sciences 65:2279--2292.
